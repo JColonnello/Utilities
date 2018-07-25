@@ -2,33 +2,35 @@
 #include <Collections/Queue.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <alloca.h>
+#include <malloc.h>
 
 const int size = 7;
 void printQueue(Queue queue)
 {
 	int count = Queue_Count(queue);
 	printf("Count=%d: ", count);
-	int *array = alloca(sizeof(int) * count);
+	int *array = malloc(sizeof(int) * count);
 	Queue_ToArray(queue, array);
 	for(int i = 0; i < count; i++)
 	{
 		printf("%d ", array[i]);
 	}
 	printf("\n");
+	free(array);
 }
 
 void printStack(Stack stack)
 {
 	int count = Stack_Count(stack);
 	printf("Count=%d: ", count);
-	int *array = alloca(sizeof(int) * count);
+	int *array = malloc(sizeof(int) * count);
 	Stack_ToArray(stack, array);
 	for(int i = 0; i < count; i++)
 	{
 		printf("%d ", array[i]);
 	}
 	printf("\n");
+	free(array);
 }
 
 int main()
