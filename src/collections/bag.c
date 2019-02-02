@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
 
 #define DEFAULT_CAPACITY 32
@@ -9,174 +10,172 @@
 struct Bag
 {
 	size_t elemSize;
-	int count;
-	int maxCount;
+	size_t count;
+	size_t maxCount;
 	size_t size;
-	char *data;
+	void *data;
 	char *flags;
 };
 
-static void reallocMem(Bag Bag, int newSize)
+static void reallocMem(Bag *bag, int newSize)
 {
 	//Reserve memory for data and flags
-	int dataSize = Bag->elemSize * newSize;
-	int flagsSize = newSize / 8;
-	int oldFlagsSize = Bag->size / 8;
-	char *mem = realloc(Bag->data, dataSize + flagsSize);
+	size_t dataSize = bag->elemSize * newSize;
+	size_t flagsSize = newSize / 8;
+	size_t oldFlagsSize = bag->size / 8;
+	uintptr_t *mem = realloc(bag->data, dataSize + flagsSize);
 	//Copy flags to new array (data is copied on realloc)
-	memcpy(mem + dataSize, Bag->flags, oldFlagsSize);
+	memcpy(mem + dataSize, bag->flags, oldFlagsSize);
 	//Initialize new flags to 0
-	uint8_t *ptr = mem + dataSize + oldFlagsSize;
-	for(int block = oldFlagsSize; block < flagsSize; block++, ptr++) *ptr = 0;
+	size_t *ptr = mem + dataSize + oldFlagsSize;
+	for(int block = oldFlagsSize; block < flagsSize; block++, ptr++)
+		*ptr = 0;
 	//Asign the new pointers and size
-	Bag->data = mem;
-	Bag->flags = mem + dataSize;
-	Bag->size = newSize;
+	bag->data = mem;
+	bag->flags = (char*)(mem + dataSize);
+	bag->size = newSize;
 }
 
-Bag Bag_new(int elemSize)
+Bag *Bag_Create(size_t elemSize)
 {
 	//Reserve memory
-	Bag Bag = malloc(sizeof(struct Bag));
+	Bag *bag = malloc(sizeof(struct Bag));
 	//Set variables
-	Bag->size = 0;
-	Bag->elemSize = elemSize;
-	Bag->count = 0;
-	Bag->maxCount = 0;
+	bag->size = 0;
+	bag->elemSize = elemSize;
+	bag->count = 0;
+	bag->maxCount = 0;
 	
 	//Reserve memory for data
-	Bag->data = NULL;
-	Bag->flags = NULL;
-	reallocMem(Bag, DEFAULT_CAPACITY);
+	bag->data = NULL;
+	bag->flags = NULL;
+	reallocMem(bag, DEFAULT_CAPACITY);
 
-	return Bag;
+	return bag;
 }
 
-int Bag_Add(Bag Bag, void *data)
+int Bag_Add(Bag *bag, void *data)
 {
 	int pos = 0;
 	//If we have reached the end of the array, expland the Bag
-	if(Bag->count == Bag->size) reallocMem(Bag, Bag->size * 2);
+	if(bag->count == bag->size)
+		reallocMem(bag, bag->size * 2);
 	//If there are holes in the Bag check the flags
-	if(Bag->count < Bag->maxCount)
+	if(bag->count < bag->maxCount)
 	{
 		//Access the flags by byte and then shift to
 		//operate on the next bit
-		for(int block = 0; block < Bag->size / 8; block++)
+		for(int block = 0; block < bag->size / 8; block++)
 		{
-			int chunk = Bag->flags[block];
+			int chunk = bag->flags[block];
 			if(chunk == 255) continue;
 			for(int bit = 0; bit < 8; bit++, pos++)
 			{
 				//If a hole is found set that flag to 1 and leave
 				if(chunk <= 127) 
 				{
-					Bag->flags[block] |= (uint8_t)128 >> bit;
+					bag->flags[block] |= (uint8_t)128 >> bit;
 					goto out;
 				}
 			}
 		}
 		out:
-		Bag->count++;
+		bag->count++;
 	}
 	//Otherwise Add the element at the end
 	else
 	{
-		int block = Bag->count / 8;
-		int offset = Bag->count % 8;
-		Bag->flags[block] |= (uint8_t)128 >> offset;
-		pos = Bag->count++;
+		int block = bag->count / 8;
+		int offset = bag->count % 8;
+		bag->flags[block] |= (uint8_t)128 >> offset;
+		pos = bag->count++;
 	}
-	memcpy(&Bag->data[pos * Bag->elemSize], data, Bag->elemSize);
-	if(Bag->count > Bag->maxCount) Bag->maxCount = Bag->count;
+	memcpy(bag->data + pos * bag->elemSize, data, bag->elemSize);
+	if(bag->count > bag->maxCount) bag->maxCount = bag->count;
 	return pos;
 }
 
-void Bag_Get(Bag Bag, int index, void *dest)
+void Bag_Get(Bag *bag, int index, void *dest)
 {
-	memcpy(dest, &Bag->data[Bag->elemSize * index], Bag->elemSize);
+	memcpy(dest, bag->data + bag->elemSize * index, bag->elemSize);
 }
 
-void Bag_Remove(Bag Bag, int index)
+void Bag_Remove(Bag *bag, int index)
 {
 	int block = index / 8;
 	int offset = index % 8;
 
 	//Set flag to 0
-	Bag->flags[block] &= ~((uint8_t)128 >> offset);
-	Bag->count--;
+	bag->flags[block] &= ~((uint8_t)128 >> offset);
+	bag->count--;
 }
 
-int Bag_Count(Bag Bag)
+int Bag_Count(Bag *bag)
 {
-	return Bag->count;
+	return bag->count;
 }
 
-int Bag_ToIndexArray(Bag Bag, void *array)
+int Bag_ToIndexArray(Bag *bag, int *array)
 {
 	int arrayPos = 0;
-	int BagPos = 0;
-	//Allocate the array
-	int *arr = array;
+	int bagPos = 0;
 	//Search the flags
-	for(int block = 0; block < Bag->size / 8; block++)
+	for(int block = 0; block < bag->size / 8; block++)
 	{
-		uint8_t chunk = Bag->flags[block];
-		for(int bit = 0; bit < 8; bit++, BagPos++, chunk <<= 1)
+		uint8_t chunk = bag->flags[block];
+		for(int bit = 0; bit < 8; bit++, bagPos++, chunk <<= 1)
 		{
 			//If the flag is 1 copy index to array
 			if(chunk >= 128) 
 			{
-				arr[arrayPos++] = BagPos;
+				array[arrayPos++] = bagPos;
 			}
 		}
 	}
-	return Bag->count;
+	return bag->count;
 }
 
-int Bag_ToArray(Bag Bag, void *array)
+int Bag_ToArray(Bag *bag, void *array)
 {
-	int arrayPos = 0;
-	int BagPos = 0;
-	//Allocate the array
-	char *arr = array;
+	size_t arrayPos = 0;
+	size_t bagPos = 0;
 	//Search the flags
-	for(int block = 0; block < Bag->size / 8; block++)
+	for(int block = 0; block < bag->size / 8; block++)
 	{	
-		uint8_t chunk = Bag->flags[block];
+		uint8_t chunk = bag->flags[block];
 		/*If all the flags in the chunk are 1 copy the
 		* 8 elements to the array
 		*/
 		if(chunk == 255)
 		{
-			memcpy(arr + Bag->elemSize * arrayPos,
-			 		Bag->data + Bag->elemSize * BagPos,
-			 		 Bag->elemSize * 8);
+			memcpy(array + bag->elemSize * arrayPos,
+			 		bag->data + bag->elemSize * bagPos,
+			 		 bag->elemSize * 8);
 			arrayPos += 8;
-			BagPos += 8;
+			bagPos += 8;
 		}
 		//Otherwise check the flags == 1 and copy their elements
-		else for(int bit = 0; bit < 8; bit++, BagPos++, chunk <<= 1)
+		else for(int bit = 0; bit < 8; bit++, bagPos++, chunk <<= 1)
 		{
 			if(chunk >= 128) 
 			{
-				memcpy(arr + Bag->elemSize * arrayPos,
-			 		Bag->data + Bag->elemSize * BagPos,
-			 		 Bag->elemSize);
+				memcpy(array + bag->elemSize * arrayPos,
+			 		bag->data + bag->elemSize * bagPos,
+			 		 bag->elemSize);
 				arrayPos++;
 			}
 		}
 	}
-	return Bag->count;
+	return bag->count;
 }
 
-void Bag_Dispose(Bag Bag)
+void Bag_Dispose(Bag *bag)
 {
-	free(Bag->data);
-	free(Bag);
+	free(bag->data);
+	free(bag);
 }
 
-void *Bag_Data(Bag bag)
+void *Bag_Data(Bag *bag)
 {
 	return bag->data;
 }

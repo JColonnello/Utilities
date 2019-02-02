@@ -11,15 +11,15 @@
 struct Stack
 {
 	bool expandible;
-	int capacity;
-	int count;
+	size_t capacity;
+	size_t count;
 	size_t elemSize;
-	char *data;
+	void *data;
 };
 
-Stack Stack_new(int capacity, size_t elemSize)
+Stack *Stack_Create(size_t capacity, size_t elemSize)
 {
-	Stack stack = malloc(sizeof(struct Stack));
+	Stack *stack = malloc(sizeof(struct Stack));
 
 	if(stack == NULL)
 		return NULL;
@@ -49,13 +49,13 @@ Stack Stack_new(int capacity, size_t elemSize)
 	return stack;
 }
 
-bool Stack_Push(Stack stack, void *elem)
+bool Stack_Push(Stack *stack, void *elem)
 {
 	if(stack->count >= stack->capacity)
 	{
 		if(stack->expandible)
 		{
-			void *newDataBlock = (Stack)malloc(STACK_SIZE(stack) * 2);
+			void *newDataBlock = (Stack*)malloc(STACK_SIZE(stack) * 2);
 			if(newDataBlock != NULL)
 			{
 				Stack_ToArray(stack, newDataBlock);
@@ -75,7 +75,7 @@ bool Stack_Push(Stack stack, void *elem)
 	return true;
 }
 
-bool Stack_Pop(Stack stack, void *elem)
+bool Stack_Pop(Stack *stack, void *elem)
 {
 	if(stack->count <= 0)
 		return false;
@@ -86,7 +86,7 @@ bool Stack_Pop(Stack stack, void *elem)
 	return true;
 }
 
-bool Stack_Peek(Stack stack, void* elem)
+bool Stack_Peek(Stack *stack, void* elem)
 {
 	if(stack->count <= 0)
 		return false;
@@ -95,7 +95,7 @@ bool Stack_Peek(Stack stack, void* elem)
 	return true;
 }
 
-void Stack_Rotate(Stack stack, int desp)
+void Stack_Rotate(Stack *stack, int desp)
 {
 	if(stack->count <= 1)
 		return;
@@ -123,7 +123,7 @@ void Stack_Rotate(Stack stack, int desp)
 		temp = STACK_END(stack);
 	else
 	{
-		temp = alloca(min * stack->elemSize);
+		temp = malloc(min * stack->elemSize);
 		if(temp == NULL)
 			return;
 	}
@@ -140,21 +140,23 @@ void Stack_Rotate(Stack stack, int desp)
 		memmove(stack->data + bigSize, stack->data, bigSize);
 		memmove(stack->data, temp, smallSize);
 	}
+
+	free(temp);
 }
 
-int Stack_Count(Stack stack)
+int Stack_Count(Stack *stack)
 {
 	return stack->count;
 }
 
-void Stack_ToArray(Stack stack, void *array)
+void Stack_ToArray(Stack *stack, void *array)
 {
 	if(stack->count <= 0)
 		return;
 	memcpy(array, stack->data, STACK_SIZE(stack));
 }
 
-void Stack_Dispose(Stack stack)
+void Stack_Dispose(Stack *stack)
 {
 	free(stack->data);
 	free(stack);

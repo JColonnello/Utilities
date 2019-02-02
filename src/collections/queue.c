@@ -8,17 +8,17 @@
 struct Queue
 {
 	bool expandible;
-	int capacity;
-	int count;
+	size_t capacity;
+	size_t count;
 	size_t start;
 	size_t end;
 	size_t elemSize;
-	char *data;
+	void *data;
 };
 
-Queue Queue_new(int capacity, size_t elemSize)
+Queue *Queue_Create(int capacity, size_t elemSize)
 {
-	Queue queue = malloc(sizeof(struct Queue));
+	Queue *queue = malloc(sizeof(struct Queue));
 
 	if(capacity < 0)
 	{
@@ -45,13 +45,13 @@ Queue Queue_new(int capacity, size_t elemSize)
 	return queue;
 }
 
-void Queue_Enqueue(Queue queue, void *elem)
+void Queue_Enqueue(Queue *queue, void *elem)
 {
 	if(queue->count >= queue->capacity)
 	{
 		if(queue->expandible)
 		{
-			void *newDataBlock = (Queue)malloc(queue->capacity * queue->elemSize * 2);
+			void *newDataBlock = (Queue*)malloc(queue->capacity * queue->elemSize * 2);
 			if(newDataBlock != NULL)
 			{
 				Queue_ToArray(queue, newDataBlock);
@@ -79,7 +79,7 @@ void Queue_Enqueue(Queue queue, void *elem)
 	queue->end %= queue->capacity;
 }
 
-bool Queue_Dequeue(Queue queue, void *elem)
+bool Queue_Dequeue(Queue *queue, void *elem)
 {
 	if(queue->count <= 0)
 		return false;
@@ -92,7 +92,7 @@ bool Queue_Dequeue(Queue queue, void *elem)
 	return true;
 }
 
-bool Queue_Peek(Queue queue, void *elem)
+bool Queue_Peek(Queue *queue, void *elem)
 {
 	if(queue->count <= 0) 
 		return false;
@@ -101,30 +101,29 @@ bool Queue_Peek(Queue queue, void *elem)
 	return true;
 }
 
-int Queue_Count(Queue queue)
+int Queue_Count(Queue *queue)
 {
 	return queue->count;
 }
 
-void Queue_ToArray(Queue queue, void *array)
+void Queue_ToArray(Queue *queue, void *array)
 {
-	char *arr = array;
 	if(queue->count <= 0) 
 		return;
 	int size = (queue->end - queue->start) * queue->elemSize;
 	if(size > 0)
 	{
-		memcpy(arr, queue->data + queue->start * queue->elemSize, size);
+		memcpy(array, queue->data + queue->start * queue->elemSize, size);
 	}
 	else
 	{
 		size = (queue->capacity - queue->start) * queue->elemSize;
-		memcpy(arr, queue->data + queue->start * queue->elemSize, size);
-		memcpy(arr + size, queue->data, queue->end * queue->elemSize);
+		memcpy(array, queue->data + queue->start * queue->elemSize, size);
+		memcpy(array + size, queue->data, queue->end * queue->elemSize);
 	}
 }
 
-void Queue_Dispose(Queue queue)
+void Queue_Dispose(Queue *queue)
 {
 	free(queue->data);
 	free(queue);

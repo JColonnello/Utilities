@@ -5,7 +5,7 @@
 #include <malloc.h>
 
 const int size = 7;
-void printQueue(Queue queue)
+void printQueue(Queue *queue)
 {
 	int count = Queue_Count(queue);
 	printf("Count=%d: ", count);
@@ -19,7 +19,7 @@ void printQueue(Queue queue)
 	free(array);
 }
 
-void printStack(Stack stack)
+void printStack(Stack *stack)
 {
 	int count = Stack_Count(stack);
 	printf("Count=%d: ", count);
@@ -35,7 +35,7 @@ void printStack(Stack stack)
 
 int main()
 {
-	Stack stack = Stack_new(8, sizeof(int));
+	Stack *stack = Stack_Create(8, sizeof(int));
 	printStack(stack);
 	for(int i = 0; i < 8; i++)
 	{
