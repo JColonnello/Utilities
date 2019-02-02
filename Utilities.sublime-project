@@ -2,10 +2,23 @@
 	"folders":
 	[
 		{
-			"path": "Library"
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"sublimegdb_workingdir": "${project_path:build}",
+		"sublimegdb_commandline": "gdb -nx -readnow -fullname --interpreter=mi -args Test.bin",
+	},
+	"build_systems":
+	[
+		{
+			"name": "Make - Rebuild",
+			"shell_cmd": "make -C $project_path rebuild"
 		},
 		{
-			"path": "Test"
+			"name": "Valgrind",
+			"shell_cmd": "cd $project_path/build;valgrind ./Test.bin"
 		}
 	]
 }
