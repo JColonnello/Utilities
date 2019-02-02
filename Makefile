@@ -3,7 +3,7 @@ TARGET_LIB := lib$(LIB_NAME).so
 TARGET_EXEC := Test.bin
 TARGET_CS := Control.exe
 
-BUILD_DIR ?= build
+BUILD_DIR ?= obj
 SRC_DIRS ?= ./
 ASSEMBLY_DIR ?= asm
 SRC_LIB_DIRS ?= $(SRC_DIRS)/src/
