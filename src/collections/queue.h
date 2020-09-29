@@ -4,7 +4,7 @@
 
 typedef struct Queue Queue;
 
-Queue *Queue_Create(int capacity, size_t elemSize);
+Queue *Queue_Create(size_t capacity, size_t elemSize);
 void Queue_Enqueue(Queue *queue, void *elem);
 bool Queue_Dequeue(Queue *queue, void *elem);
 bool Queue_Peek(Queue *queue, void *elem);

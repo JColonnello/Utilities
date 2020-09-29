@@ -27,7 +27,7 @@ static void reallocMem(Pool *pool, int newSize)
 	memcpy(mem + dataSize, pool->flags, oldFlagsSize);
 	//Initialize new flags to 0
 	size_t *ptr = mem + dataSize + oldFlagsSize;
-	for(int block = oldFlagsSize; block < flagsSize; block++, ptr++)
+	for(size_t block = oldFlagsSize; block < flagsSize; block++, ptr++)
 		*ptr = 0;
 	//Asign the new pointers and size
 	pool->data = mem;
@@ -67,7 +67,7 @@ int Pool_Add(Pool *pool, void *data)
 	{
 		//Access the flags by byte and then shift to
 		//operate on the next bit
-		for(int block = 0; block < pool->size / 8; block++)
+		for(size_t block = 0; block < pool->size / 8; block++)
 		{
 			int chunk = pool->flags[block];
 			if(chunk == 255) continue;
@@ -122,7 +122,7 @@ int Pool_ToIndexArray(Pool *pool, int *array)
 	int arrayPos = 0;
 	int poolPos = 0;
 	//Search the flags
-	for(int block = 0; block < pool->size / 8; block++)
+	for(size_t block = 0; block < pool->size / 8; block++)
 	{
 		uint8_t chunk = pool->flags[block];
 		for(int bit = 0; bit < 8; bit++, poolPos++, chunk <<= 1)
@@ -142,8 +142,8 @@ int Pool_ToArray(Pool *pool, void *array)
 	size_t arrayPos = 0;
 	size_t poolPos = 0;
 	//Search the flags
-	for(int block = 0; block < pool->size / 8; block++)
-	{	
+	for(size_t block = 0; block < pool->size / 8; block++)
+	{
 		uint8_t chunk = pool->flags[block];
 		/*If all the flags in the chunk are 1 copy the
 		* 8 elements to the array

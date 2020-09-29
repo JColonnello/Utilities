@@ -15,14 +15,12 @@ struct Queue
 	void *data;
 };
 
-Queue *Queue_Create(int capacity, size_t elemSize)
+Queue *Queue_Create(size_t capacity, size_t elemSize)
 {
-	if(capacity < 0)
-		return NULL;
-	
 	Queue *queue = malloc(sizeof(struct Queue));
 	if(queue == NULL)
 		return NULL;
+	
 	if(capacity == 0)
 	{
 		capacity = DEFAULT_CAPACITY;

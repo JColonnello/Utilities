@@ -17,13 +17,11 @@ struct Stack
 };
 
 Stack *Stack_Create(size_t capacity, size_t elemSize)
-{
-	if(capacity < 0)
-		return NULL;
-	
+{	
 	Stack *stack = malloc(sizeof(struct Stack));
 	if(stack == NULL)
 		return NULL;
+	
 	if(capacity == 0)
 	{
 		capacity = DEFAULT_CAPACITY;
@@ -72,7 +70,7 @@ bool Stack_Push(Stack *stack, void *elem)
 
 bool Stack_Pop(Stack *stack, void *elem)
 {
-	if(stack->count <= 0)
+	if(stack->count == 0)
 		return false;
 
 	if(elem != NULL)
@@ -81,9 +79,9 @@ bool Stack_Pop(Stack *stack, void *elem)
 	return true;
 }
 
-bool Stack_Peek(Stack *stack, void* elem)
+bool Stack_Peek(const Stack *stack, void* elem)
 {
-	if(stack->count <= 0)
+	if(stack->count == 0)
 		return false;
 
 	memcpy(elem, STACK_END(stack), stack->elemSize);
@@ -95,23 +93,14 @@ void Stack_Rotate(Stack *stack, int desp)
 	if(stack->count <= 1)
 		return;
 
-	int division = (stack->count - desp) % stack->count;
+	size_t division = (desp < 0) ? (-desp) % stack->count : stack->count - (desp % stack->count);
 	if(division == 0)
 		return;
 
 	size_t min, smallSize, bigSize;
-	if(division < (stack->count - division))
-	{
-		min = division;
-		smallSize = division * stack->elemSize;
-		bigSize = (stack->count - division) * stack->elemSize;
-	}
-	else
-	{
-		min = (stack->count - division);
-		smallSize = (stack->count - division) * stack->elemSize;
-		bigSize = division * stack->elemSize;
-	}
+	min = (division < (stack->count - division)) ? division : (stack->count - division);
+	smallSize = min * stack->elemSize;
+	bigSize = (stack->count - min) * stack->elemSize;
 
 	void *temp;
 	if(stack->capacity >= (stack->count + min))
@@ -139,14 +128,14 @@ void Stack_Rotate(Stack *stack, int desp)
 	free(temp);
 }
 
-int Stack_Count(Stack *stack)
+int Stack_Count(const Stack *stack)
 {
 	return stack->count;
 }
 
-void Stack_ToArray(Stack *stack, void *array)
+void Stack_ToArray(const Stack *stack, void *array)
 {
-	if(stack->count <= 0)
+	if(stack->count == 0)
 		return;
 	memcpy(array, stack->data, STACK_SIZE(stack));
 }
