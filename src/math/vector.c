@@ -1,5 +1,5 @@
-#include "Vector.h"
-#include "Math.h"
+#include <math/vector.h>
+#include <math/math.h>
 #include <stdio.h>
 
 #define V_UNITX { .X = 1.0f, .Y = 0.0f, .Z = 0.0f, .W = 0.0f }

@@ -1,5 +1,5 @@
-#include <Collections/Stack.h>
-#include <Collections/Queue.h>
+#include <collections/stack.h>
+#include <collections/queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>

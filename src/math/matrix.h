@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.h"
+#include <math/vector.h>
 #include <stdbool.h>
 
 //Struct declarations

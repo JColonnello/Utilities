@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.h"
+#include <math/vector.h>
 
 #define Abs(x) ((x) >= 0) ? (x) : (-x);
 #define PI 3.1415926F

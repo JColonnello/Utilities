@@ -1,6 +1,6 @@
-#include "Matrix.h"
-#include "Vector.h"
-#include "Math.h"
+#include <math/matrix.h>
+#include <math/vector.h>
+#include <math/math.h>
 #include <string.h>
 //Constant declaration
 

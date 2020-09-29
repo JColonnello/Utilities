@@ -1,6 +1,5 @@
-#include "Pool.h"
+#include <collections/pool.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -40,6 +39,9 @@ Pool *Pool_Create(size_t elemSize)
 {
 	//Reserve memory
 	Pool *pool = malloc(sizeof(struct Pool));
+	if(pool == NULL)
+		return NULL;
+	
 	//Set variables
 	pool->size = 0;
 	pool->elemSize = elemSize;

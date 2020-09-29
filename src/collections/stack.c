@@ -1,6 +1,5 @@
-#include "Stack.h"
+#include <collections/stack.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <malloc.h>
 #include <string.h>
 
@@ -19,17 +18,13 @@ struct Stack
 
 Stack *Stack_Create(size_t capacity, size_t elemSize)
 {
+	if(capacity < 0)
+		return NULL;
+	
 	Stack *stack = malloc(sizeof(struct Stack));
-
 	if(stack == NULL)
 		return NULL;
-
-	if(capacity < 0)
-	{
-		printf("Negative capacity for Stack\n");
-		return NULL;
-	}
-	else if(capacity == 0)
+	if(capacity == 0)
 	{
 		capacity = DEFAULT_CAPACITY;
 		stack->expandible = true;
