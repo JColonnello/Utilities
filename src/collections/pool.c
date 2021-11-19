@@ -1,4 +1,5 @@
 #include <collections/pool.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,19 +17,22 @@ struct Pool
 	char *flags;
 };
 
+static bool inBounds(Pool *pool, int index)
+{
+	return (index < 0 || (size_t)index >= pool->count);
+}
+
 static void reallocMem(Pool *pool, int newSize)
 {
 	// Reserve memory for data and flags
 	size_t dataSize = pool->elemSize * newSize;
 	size_t flagsSize = newSize / 8;
 	size_t oldFlagsSize = pool->size / 8;
-	uintptr_t *mem = realloc(pool->data, dataSize + flagsSize);
+	void *mem = realloc(pool->data, dataSize + flagsSize);
 	// Copy flags to new array (data is copied on realloc)
-	memcpy(mem + dataSize, pool->flags, oldFlagsSize);
+	memmove(mem + dataSize, pool->flags, oldFlagsSize);
 	// Initialize new flags to 0
-	size_t *ptr = mem + dataSize + oldFlagsSize;
-	for (size_t block = oldFlagsSize; block < flagsSize; block++, ptr++)
-		*ptr = 0;
+	memset(mem + dataSize + oldFlagsSize, 0, flagsSize - oldFlagsSize);
 	// Asign the new pointers and size
 	pool->data = mem;
 	pool->flags = (char *)(mem + dataSize);
@@ -101,18 +105,23 @@ int Pool_Add(Pool *pool, const void *data)
 
 void Pool_Get(Pool *pool, int index, void *dest)
 {
+	if (!inBounds(pool, index))
+		return;
 	memcpy(dest, pool->data + pool->elemSize * index, pool->elemSize);
 }
 
 void *Pool_GetRef(Pool *pool, int index)
 {
-	if (index < 0 || (size_t)index >= pool->count)
+	if (!inBounds(pool, index))
 		return NULL;
 	return pool->data + pool->elemSize * index;
 }
 
 void Pool_Remove(Pool *pool, int index)
 {
+	if (!inBounds(pool, index))
+		return;
+
 	int block = index / 8;
 	int offset = index % 8;
 
