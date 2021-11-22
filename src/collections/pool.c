@@ -19,7 +19,7 @@ struct Pool
 
 static bool inBounds(Pool *pool, int index)
 {
-	return (index < 0 || (size_t)index >= pool->count);
+	return (index >= 0 && (size_t)index < pool->count);
 }
 
 static void reallocMem(Pool *pool, int newSize)
