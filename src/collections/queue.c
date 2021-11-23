@@ -1,6 +1,6 @@
 #include <collections/queue.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define DEFAULT_CAPACITY 32
 
@@ -18,10 +18,10 @@ struct Queue
 Queue *Queue_Create(size_t capacity, size_t elemSize)
 {
 	Queue *queue = malloc(sizeof(struct Queue));
-	if(queue == NULL)
+	if (queue == NULL)
 		return NULL;
-	
-	if(capacity == 0)
+
+	if (capacity == 0)
 	{
 		capacity = DEFAULT_CAPACITY;
 		queue->expandible = true;
@@ -43,12 +43,12 @@ Queue *Queue_Create(size_t capacity, size_t elemSize)
 
 void Queue_Enqueue(Queue *queue, void *elem)
 {
-	if(queue->count >= queue->capacity)
+	if (queue->count >= queue->capacity)
 	{
-		if(queue->expandible)
+		if (queue->expandible)
 		{
-			void *newDataBlock = (Queue*)malloc(queue->capacity * queue->elemSize * 2);
-			if(newDataBlock != NULL)
+			void *newDataBlock = (Queue *)malloc(queue->capacity * queue->elemSize * 2);
+			if (newDataBlock != NULL)
 			{
 				Queue_ToArray(queue, newDataBlock);
 				free(queue->data);
@@ -77,10 +77,11 @@ void Queue_Enqueue(Queue *queue, void *elem)
 
 bool Queue_Dequeue(Queue *queue, void *elem)
 {
-	if(queue->count == 0)
+	if (queue->count == 0)
 		return false;
 
-	memcpy(elem, queue->data + queue->start * queue->elemSize, queue->elemSize);
+	if (elem != NULL)
+		memcpy(elem, queue->data + queue->start * queue->elemSize, queue->elemSize);
 	queue->start++;
 	queue->start %= queue->capacity;
 	queue->count--;
@@ -90,7 +91,7 @@ bool Queue_Dequeue(Queue *queue, void *elem)
 
 bool Queue_Peek(Queue *queue, void *elem)
 {
-	if(queue->count == 0) 
+	if (queue->count == 0)
 		return false;
 
 	memcpy(elem, queue->data + queue->start * queue->elemSize, queue->elemSize);
@@ -104,10 +105,10 @@ int Queue_Count(Queue *queue)
 
 void Queue_ToArray(Queue *queue, void *array)
 {
-	if(queue->count == 0) 
+	if (queue->count == 0)
 		return;
 	int size = (queue->end - queue->start) * queue->elemSize;
-	if(size > 0)
+	if (size > 0)
 	{
 		memcpy(array, queue->data + queue->start * queue->elemSize, size);
 	}
