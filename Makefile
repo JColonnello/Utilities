@@ -18,7 +18,7 @@ INC_DIRS := $(SRC_LIB_DIRS)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 LDFLAGS_LIB ?= -lm
 LDFLAGS_TEST ?= -rpath=$(BUILD_DIR),-lm
-CFLAGS ?= -g -Wall -Wextra -std=c99
+CFLAGS ?= -g -Wall -Wextra -std=c11
 DEP_FLAGS := -MMD -MP
 
 all: native test

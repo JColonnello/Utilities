@@ -14,12 +14,12 @@ struct Pool
 	size_t maxCount;
 	size_t size;
 	void *data;
-	char *flags;
+	uint8_t *flags;
 };
 
 static bool inBounds(Pool *pool, int index)
 {
-	return (index >= 0 && (size_t)index < pool->count);
+	return (index >= 0 && (size_t)index < pool->maxCount);
 }
 
 static void reallocMem(Pool *pool, int newSize)
@@ -30,12 +30,13 @@ static void reallocMem(Pool *pool, int newSize)
 	size_t oldFlagsSize = pool->size / 8;
 	void *mem = realloc(pool->data, dataSize + flagsSize);
 	// Copy flags to new array (data is copied on realloc)
-	memmove(mem + dataSize, pool->flags, oldFlagsSize);
+	if (pool->flags != NULL)
+		memmove(mem + dataSize, pool->flags, oldFlagsSize);
 	// Initialize new flags to 0
 	memset(mem + dataSize + oldFlagsSize, 0, flagsSize - oldFlagsSize);
 	// Asign the new pointers and size
 	pool->data = mem;
-	pool->flags = (char *)(mem + dataSize);
+	pool->flags = (mem + dataSize);
 	pool->size = newSize;
 }
 
@@ -73,10 +74,10 @@ int Pool_Add(Pool *pool, const void *data)
 		// operate on the next bit
 		for (size_t block = 0; block < pool->size / 8; block++)
 		{
-			int chunk = pool->flags[block];
+			uint8_t chunk = pool->flags[block];
 			if (chunk == 255)
 				continue;
-			for (int bit = 0; bit < 8; bit++, pos++)
+			for (int bit = 0; bit < 8; bit++, pos++, chunk <<= 1)
 			{
 				// If a hole is found set that flag to 1 and leave
 				if (chunk <= 127)
